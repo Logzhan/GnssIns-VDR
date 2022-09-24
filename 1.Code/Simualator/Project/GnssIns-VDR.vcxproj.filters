@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\Utils">
+      <UniqueIdentifier>{63104727-b67d-48da-a323-d8807e093166}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Location">
+      <UniqueIdentifier>{36420699-adfa-418b-b9e0-0cdf1e967fcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Ins">
+      <UniqueIdentifier>{f0d1d596-0324-4c0d-b101-9a73a7695bd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Math">
+      <UniqueIdentifier>{19c0ab01-53bc-44ae-95f4-5eec5b71dbc0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\CoordTrans.cpp">
+      <Filter>源文件\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Location.cpp">
+      <Filter>源文件\Location</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Kalman.cpp">
+      <Filter>源文件\Location</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\AHRS.cpp">
+      <Filter>源文件\Ins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Quaternion.cpp">
+      <Filter>源文件\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Matrix.cpp">
+      <Filter>源文件\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\KmlSupport.cpp">
+      <Filter>源文件\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Detector.cpp">
+      <Filter>源文件\Ins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Interface.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Pedometer.cpp">
+      <Filter>源文件\Ins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\DirectionEstimator.cpp">
+      <Filter>源文件\Ins</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Src\CoordTrans.h">
+      <Filter>源文件\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Location.h">
+      <Filter>源文件\Location</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Kalman.h">
+      <Filter>源文件\Location</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\VDRBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\AHRS.h">
+      <Filter>源文件\Ins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Quaternion.h">
+      <Filter>源文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Matrix.h">
+      <Filter>源文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\KmlSupport.h">
+      <Filter>源文件\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Detector.h">
+      <Filter>源文件\Ins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Interface.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Pedometer.h">
+      <Filter>源文件\Ins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\DirectionEstimator.h">
+      <Filter>源文件\Ins</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
