@@ -1,0 +1,5 @@
+
+Stim300 IMU频率200Hz，GPS频率10Hz
+
+mimu_data : 前三列是比力积分速度增量，单位m/s，后三列是角增量，单位弧度，坐标系前右下
+gps_data : lati,longi,alti,vn,ve,vd，经纬度单位是弧度
