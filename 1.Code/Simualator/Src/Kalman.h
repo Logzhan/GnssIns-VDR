@@ -1,7 +1,7 @@
 #ifndef _VDR_KALMAN_H_
 #define _VDR_KALMAN_H_
 
-#include "VDRBase.h"
+//#include "VDRBase.h"
 
 /**----------------------------------------------------------------------
 * Function    : EKF_Init
@@ -25,6 +25,6 @@ void EKFCalQRMatrix();
 * Description : À©Õ¹¿¨¶ûÂüÂË²¨Æ÷¸üÐÂINS×´Ì¬
 * Date        : 2022/09/23 logzhan
 *---------------------------------------------------------------------**/
-void EKFUpdateInsState(void);
+void StatePredict(void);
 
 #endif

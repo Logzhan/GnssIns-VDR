@@ -76,6 +76,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\3rdparty\eigen\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -144,32 +145,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Src\AHRS.cpp" />
-    <ClCompile Include="..\Src\CoordTrans.cpp" />
-    <ClCompile Include="..\Src\Detector.cpp" />
-    <ClCompile Include="..\Src\DirectionEstimator.cpp" />
-    <ClCompile Include="..\Src\Interface.cpp" />
     <ClCompile Include="..\Src\Kalman.cpp" />
-    <ClCompile Include="..\Src\KmlSupport.cpp" />
+    <ClCompile Include="..\Src\Main.cpp" />
+    <ClCompile Include="..\Src\Mat.cpp" />
     <ClCompile Include="..\Src\Location.cpp" />
-    <ClCompile Include="..\Src\Matrix.cpp" />
-    <ClCompile Include="..\Src\Pedometer.cpp" />
-    <ClCompile Include="..\Src\Quaternion.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\Src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Src\AHRS.h" />
-    <ClInclude Include="..\Src\CoordTrans.h" />
-    <ClInclude Include="..\Src\Detector.h" />
-    <ClInclude Include="..\Src\DirectionEstimator.h" />
-    <ClInclude Include="..\Src\Interface.h" />
     <ClInclude Include="..\Src\Kalman.h" />
-    <ClInclude Include="..\Src\KmlSupport.h" />
+    <ClInclude Include="..\Src\Mat.h" />
     <ClInclude Include="..\Src\Location.h" />
+    <ClInclude Include="..\Src\Utils.h" />
     <ClInclude Include="..\Src\VDRBase.h" />
-    <ClInclude Include="..\Src\Matrix.h" />
-    <ClInclude Include="..\Src\Pedometer.h" />
-    <ClInclude Include="..\Src\Quaternion.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

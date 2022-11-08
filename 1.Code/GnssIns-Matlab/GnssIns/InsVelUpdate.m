@@ -5,11 +5,7 @@
 %----------------------------------------------------------------------
 function [Vn,Ve,Vd,angle,velocity,Wien,Wenn,Winn] = InsVelUpdate(ang_1,ang_2,vel_1,vel_2, Vn, Ve, Vd, ...
                         Lati,Alti, Re, Rn, cnb, cbn, sampt0, V_last, g) 
-%     ang_1 = d_angle(2*i-1,:)';
-%     ang_2 = d_angle(2*i,:)';
-%     
-%     vel_1 = d_vel(2*i-1,:)';
-%     vel_2 = d_vel(2*i,:)';
+
     WIE   = 7.292115e-5;           % 地球自转角速度
 
     % 这个变量似乎没用
@@ -23,7 +19,7 @@ function [Vn,Ve,Vd,angle,velocity,Wien,Wenn,Winn] = InsVelUpdate(ang_1,ang_2,vel
     % 双子样等效转动矢量计算
     ang_1 = ang_1 - Winb * sampt0;
     ang_2 = ang_2 - Winb * sampt0;
-    angle = ang_1+ang_2;
+    angle = ang_1 + ang_2;
     velocity = vel_1+vel_2;
     
     % 划船补偿

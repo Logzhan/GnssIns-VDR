@@ -8,7 +8,7 @@ addpath(genpath('./GnssIns'));
 
 disp('-------- 基于EKF的位置速度观测组合导航程序 ------------');
 % 加载数据集
-load IMU_Data200.mat       % 惯导原始数据
+load IMU_Raw.mat       % 惯导原始数据
 load Reference_Data.mat    % GPS测量数据
 
 disp('Step2:初始化参数;');
@@ -20,9 +20,9 @@ d2r   =  pi/180;             % degree to radian
 r2d   =  180/pi;             % radian to degree
 dh2rs =  d2r/3600;           % deg/h to rad/s
 %% 导航坐标系下初始化姿态，速度，位置
-yaw   = (0)*pi/180;%航向角
-pitch = 0*pi/180;%俯仰角
-roll  = 0*pi/180;%滚动角
+yaw   =  0*pi/180; % 航向角
+pitch =  0*pi/180; % 俯仰角
+roll  =  0*pi/180; % 滚动角
 cbn = Euler2DCM(roll,pitch,yaw);
 cnb = cbn';
 q   = DCM2Quat(cbn)';
@@ -41,7 +41,7 @@ sampt0=1/200;%惯导系统更新时间200Hz
 
 Rn = r0*(1-EE^2)/(1-EE^2*(sin(Lati))^2)^1.5;         %子午圈曲率半径
 Re = r0/(1-EE^2*(sin(Lati))^2)^0.5;                  %卯酉圈曲率半径
-
+% 初始化重力向量
 g_u = -9.7803267711905*(1+0.00193185138639*sin(Lati)^2)...
     /((1-0.00669437999013*sin(Lati)^2)^0.5 *(1.0 + Alti/r0)^2);
 g = [0 0 -g_u]';%重力
@@ -79,18 +79,18 @@ Xfilter = zeros(15, 1);
 data_length=1750;
 Navi_result=zeros(data_length,19);
 gps_count =1;
-d_angle= IMU_data200(1:end,1:3);% 角增量
-d_vel  = IMU_data200(1:end,4:6);% 比力积分增量
+gyr = IMU_Raw(1:end,1:3); % 角增量
+acc = IMU_Raw(1:end,4:6); % 比力积分增量
 disp('Step3:开始计算........');
 
 % GPS为10Hz, IMU降采样到100Hz处理
 for i=1:data_length * 200 / 2
     %% 角增量和比力积分增量
-    ang_1 = d_angle(2*i-1,:)';
-    ang_2 = d_angle(2*i,:)';
+    ang_1 = gyr(2*i-1,:)' * sampt0;
+    ang_2 = gyr(2*i,:)'* sampt0;
     
-    vel_1 = d_vel(2*i-1,:)';
-    vel_2 = d_vel(2*i,:)';
+    vel_1 = acc(2*i-1,:)'* sampt0;
+    vel_2 = acc(2*i,:)'* sampt0;
     
     % Ins惯性更新
     [Vn,Ve,Vd,angle,velocity,Wien,Wenn,Winn] = InsVelUpdate(ang_1,ang_2,vel_1,vel_2, Vn, Ve, Vd, ...
@@ -127,10 +127,10 @@ for i=1:data_length * 200 / 2
         Delta_Re = cos(norm(TV)/2);
         Delta_Im = sin(norm(TV)/2)/norm(TV) * TV;
         q_new= [Delta_Re Delta_Im']';
-        Q_matrix = [  q(1)     -q(2)     -q(3)      -q(4)
-            q(2)      q(1)     -q(4)      q(3)
-            q(3)     q(4)      q(1)      -q(2)
-            q(4)    -q(3)      q(2)       q(1)];
+        Q_matrix = [q(1)     -q(2)     -q(3)      -q(4)
+                    q(2)      q(1)     -q(4)       q(3)
+                    q(3)      q(4)      q(1)      -q(2)
+                    q(4)     -q(3)      q(2)       q(1)];
         q = Q_matrix* q_new;
         q = q/norm(q);
     end
@@ -144,24 +144,33 @@ for i=1:data_length * 200 / 2
         Discret_T=0.1;
         %Discret_T=1;
         %构建Kalman滤波器系统阵15*15
-        Fn = cbn*(velocity/2.0)/sampt0;
-        Fer=[-WIE*sin(Lati) 0 -Ve/((Re+Alti)*(Re+Alti));
-            0         0  Vn/((Rn+Alti)*(Rn+Alti));
-            -WIE*cos(Lati)-Ve/((Re+Alti)*cos(Lati)*cos(Lati)) 0  Ve*tan(Lati)/((Re+Alti)*(Re+Alti))];
-        Fev=[0 1.0/(Re+Alti) 0;
-            -1.0/(Rn+Alti) 0 0;
-            0 -tan(Lati)/(Re+Alti) 0];
-        Frr=[0             0           -Vn/((Rn+Alti)*(Rn+Alti));
-            Ve*tan(Lati)/((Re+Alti)*cos(Lati)) 0 -Ve/((Re+Alti)*(Re+Alti)*cos(Lati));
-            0               0                      0];
-        Frv=[1/(Rn+Alti)     0    0;
-            0          1/((Re+Alti)*cos(Lati)) 0;
-            0                0     -1];
-        
-        TwoWien_Winn= 2*Wien + Wenn;
-        DetaWr=[-WIE*sin(Lati) 0 0;
-            0         0 0;
-            -WIE*cos(Lati) 0 0];
+
+        % vel_1 = acc(2*i-1,:)'* sampt0;
+        % vel_2 = acc(2*i,:)'* sampt0;
+        % velocity = vel_1 + vel_2
+        Fn = cbn*( velocity / 2.0) / sampt0;
+
+        Fer=[-WIE*sin(Lati)                                      0   -Ve/((Re+Alti)*(Re+Alti));
+              0                                                  0    Vn/((Rn+Alti)*(Rn+Alti));
+             -WIE*cos(Lati)-Ve/((Re+Alti)*cos(Lati)*cos(Lati))   0    Ve*tan(Lati)/((Re+Alti)*(Re+Alti))];
+
+        Fev=[0             1.0/(Re+Alti)            0;
+            -1.0/(Rn+Alti) 0                        0;
+            0              -tan(Lati)/(Re+Alti)     0];
+
+        Frr=[0                                  0      -Vn/((Rn+Alti)*(Rn+Alti));
+             Ve*tan(Lati)/((Re+Alti)*cos(Lati)) 0      -Ve/((Re+Alti)*(Re+Alti)*cos(Lati));
+             0                                  0       0];
+
+        Frv=[1/(Rn+Alti)   0                         0;
+             0             1/((Re+Alti)*cos(Lati))   0;
+             0             0                        -1];
+         
+        TwoWien_Winn = 2*Wien + Wenn;
+
+        DetaWr=[-WIE*sin(Lati)   0   0;
+                 0               0   0;
+                -WIE*cos(Lati)   0   0];
         
         % 组建状态转移矩阵
         F(1:3,1:3)=-SkewSymmetric(Winn);
@@ -177,9 +186,9 @@ for i=1:data_length * 200 / 2
         F(7:9,4:6)=Frv;
         F(7:9,7:9)=Frr;
         
-        G=[-cbn    zeros(3,3)
+        G=[-cbn        zeros(3,3)
             zeros(3,3) cbn
-            zeros(9,6)];     
+            zeros(9,6)          ];     
         %% 矩阵离散化
         discreteF = eye(15);
         temp      = 1;
