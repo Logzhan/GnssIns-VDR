@@ -6,6 +6,7 @@
 * Comments           : 组合导航工具类函数
 ********************************************************************************/
 /* Header File Including -----------------------------------------------------*/
+#include "GnssInsDef.h"
 #include "Utils.h"
 
 extern const double deg2rad; //角度转换弧度的系数
@@ -113,4 +114,32 @@ Mat EulerDeg2Quat(double yawdeg, double pitchdeg, double rolldeg)
 	qu = QuatAttUpdate(qu, th);
 
 	return qu;
+}
+
+/**----------------------------------------------------------------------
+* Function    : CalEarthModel
+* Description : 计算地球参数模型
+* Date        : 2022/11/8 logzhan
+*---------------------------------------------------------------------**/
+EarthPara_t CalEarthModel(double Lat, double Height)
+{
+	EarthPara_t EarthPara;
+	const double Re = 6378137;
+	const double ee = 1 / 298.25722;
+
+	double lat = Lat;//纬度
+	double sin_phi = sin(lat);
+	double sin2_phi = sin_phi * sin_phi;
+	EarthPara.Rp = Re * (1 + ee * sin2_phi);
+	EarthPara.Rm = Re * (1 - 2 * ee + 3 * ee * sin2_phi);
+
+	double g0 = 9.7803267714;
+	double sl = sin(lat);
+	double s2l = sin(2 * lat);
+	double sl2 = sl * sl;
+	double s2l2 = s2l * s2l;
+	double hr = 1 + Height / Re;
+
+	EarthPara.ge = g0 * (1 + 0.0053024 * sl2 - 0.0000059 * s2l2) / (hr * hr);
+	return EarthPara;
 }

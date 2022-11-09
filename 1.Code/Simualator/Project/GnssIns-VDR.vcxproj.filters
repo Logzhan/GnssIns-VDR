@@ -33,22 +33,22 @@
     <ClCompile Include="..\Src\Mat.cpp">
       <Filter>源文件\Math</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\Location.cpp">
-      <Filter>源文件\Location</Filter>
-    </ClCompile>
     <ClCompile Include="..\Src\Kalman.cpp">
       <Filter>源文件\Location</Filter>
     </ClCompile>
     <ClCompile Include="..\Src\Utils.cpp">
       <Filter>源文件\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\Src\KmlSupport.cpp">
+      <Filter>源文件\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\Ins.cpp">
+      <Filter>源文件\Ins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Src\Mat.h">
       <Filter>源文件\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\Location.h">
-      <Filter>源文件\Location</Filter>
     </ClInclude>
     <ClInclude Include="..\Src\Kalman.h">
       <Filter>源文件\Location</Filter>
@@ -58,6 +58,12 @@
     </ClInclude>
     <ClInclude Include="..\Src\GnssInsDef.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\KmlSupport.h">
+      <Filter>源文件\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Ins.h">
+      <Filter>源文件\Ins</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

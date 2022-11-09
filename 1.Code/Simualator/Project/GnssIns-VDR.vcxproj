@@ -146,16 +146,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Src\Kalman.cpp" />
+    <ClCompile Include="..\Src\KmlSupport.cpp" />
     <ClCompile Include="..\Src\Main.cpp" />
     <ClCompile Include="..\Src\Mat.cpp" />
-    <ClCompile Include="..\Src\Location.cpp" />
+    <ClCompile Include="..\Src\Ins.cpp" />
     <ClCompile Include="..\Src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Src\GnssInsDef.h" />
     <ClInclude Include="..\Src\Kalman.h" />
+    <ClInclude Include="..\Src\KmlSupport.h" />
     <ClInclude Include="..\Src\Mat.h" />
-    <ClInclude Include="..\Src\Location.h" />
+    <ClInclude Include="..\Src\Ins.h" />
     <ClInclude Include="..\Src\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

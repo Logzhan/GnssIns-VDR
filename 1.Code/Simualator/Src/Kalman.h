@@ -1,30 +1,22 @@
 #ifndef _VDR_KALMAN_H_
 #define _VDR_KALMAN_H_
 
-//#include "VDRBase.h"
+#include "GnssInsDef.h"
 
 /**----------------------------------------------------------------------
-* Function    : EKF_Init
+* Function    : Kalman_Init
 * Description : 初始化卡尔曼滤波器相关
-* Date        : 2022/09/21 logzhan
+* Date        : 2022/11/09 logzhan
 *---------------------------------------------------------------------**/
-void EKF_Init(void);
+void Kalman_Init(GnssIns_t& gins);
 
-/**----------------------------------------------------------------------
-* Function    : EKFCalQRMatrix
-* Description : 根据GPS信号特征调整卡尔曼滤波噪声矩阵，q矩阵是过程噪声矩阵，
-*               需要跟惯导预测位置精度相关。r矩阵为GNSS观测噪声，跟GPS输出的
-*               信息精度有关。
-* Date        : 2022/09/21 logzhan
+void StatePredict(GnssIns_t& gins);
+
+/**---------------------------------------------------------------------
+* Function    : StateCorrectUpdate
+* Description : 卡尔曼状态更新以及状态修正
+* Date        : 2022/11/18 logzhan
 *---------------------------------------------------------------------**/
-void EKFCalQRMatrix();
-
-
-/**----------------------------------------------------------------------
-* Function    : EKFUpdateInsState
-* Description : 扩展卡尔曼滤波器更新INS状态
-* Date        : 2022/09/23 logzhan
-*---------------------------------------------------------------------**/
-void StatePredict(void);
+void StateUpdate(Gnss_t& gnss, GnssIns_t& gins);
 
 #endif

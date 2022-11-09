@@ -1,6 +1,6 @@
 #ifndef  _VDR_UTILS_H_
 #define  _VDR_UTILS_H_
-
+#include "GnssInsDef.h"
 #include "Mat.h"
 /**---------------------------------------------------------------------
 * Function    : Quat2DCM
@@ -29,5 +29,12 @@ Mat QuatAttUpdate(Mat q1, Mat th);
 * Date        : 2022/11/18 logzhan
 *---------------------------------------------------------------------**/
 Mat EulerDeg2Quat(double yawdeg, double pitchdeg, double rolldeg);
+
+/**----------------------------------------------------------------------
+* Function    : CalEarthModel
+* Description : 计算地球参数模型
+* Date        : 2022/11/8 logzhan
+*---------------------------------------------------------------------**/
+EarthPara_t CalEarthModel(double Lat, double Height);
 
 #endif

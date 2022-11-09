@@ -2,6 +2,9 @@
 #define  _VDR_BASE_H_
 
 #include <stdint.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include "Mat.h"
 
 #define ACCURACY_ERR_MAX                    1000                 // GPS的accuracy最大值,一般用于初始化用
 #define N                                   4                    // 矩阵维数
@@ -78,5 +81,57 @@ typedef struct {
 	double vu;
 	double heading;
 }Gnss_t;
+
+
+typedef struct {
+	double Rp;
+	double Rm;
+	double ge;
+	double wien;
+	double wenn;
+}EarthPara_t;
+
+
+typedef struct {
+	double lat;
+	double lon;
+	double height;
+	double ve;
+	double vn;
+	double vu;
+	double heading;
+	double att[3];
+	double dt;
+	Mat    GyrBias;
+	Mat    AccBias;
+	Mat    qbn;
+	Mat    vel;
+	Mat    pos;
+	Mat    AccN;
+}GnssIns_t;
+
+
+typedef struct {
+	Mat Phi;
+	Mat Pk;
+	Mat Eye;
+	Mat Q;
+	Mat Q0;
+	Mat R;
+	Mat Fpp;
+	Mat Fvp;
+	Mat Fpv;
+	Mat Fvv;
+	Mat Fav;
+	Mat Fpa;
+	Mat Fva;
+	Mat Faa;
+}Kalman_t;
+
+
+const double deg2rad = M_PI / 180.0;
+const double rad2deg = 180.0 * M_1_PI;
+// 地球自转角速度
+const double we      = 7.2921158e-5;
 
 #endif // ! _VDR_BASE_H
