@@ -44,9 +44,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Src\VDRBase.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\Src\Mat.h">
       <Filter>源文件\Math</Filter>
     </ClInclude>
@@ -58,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="..\Src\Utils.h">
       <Filter>源文件\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\GnssInsDef.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

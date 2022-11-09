@@ -53,15 +53,15 @@ void Mat::Init(int setm,int setn,int kind)
 	{
 		int x;
 		//C原有的max min会导致两次运行自变量。有附带操作的东西不要直接放到max里面。
-		int xend=mini(this->m, this->n);
-		for(x=0;x<xend;x++)
-		{
+		int xend = mini(this->m, this->n);
+		for(x=0;x<xend;x++){
 			mat[x][x]=1;
 		}
-		
 	}
 }
+void Mat::Zero() {
 
+}
 
 Mat Mat::SubMat(int a,int b,int lm,int ln)
 {

@@ -7,11 +7,11 @@
 ********************************************************************************/
 /* Header File Including -----------------------------------------------------*/
 #define _CRT_SECURE_NO_WARNINGS
+#include "GnssInsDef.h"
 #include "Location.h"
 #include "Utils.h"
 #include <stdio.h>
 #include <stdlib.h>
-
 
 
 int main()
@@ -20,11 +20,12 @@ int main()
 	FILE* fp;
 	FILE* fpin;
 	Mat ou;
-	// double Acc[3], Gyro[3];
-	double datain[12];
+	IMU_t  imu;
+	Gnss_t gnss;
+
 	char fin[1000];
 
-	KalmanParameter_Init();//设置参数
+	Kalman_Init();//设置参数
 
 	dTins = 0.004;
 	//设置初值，姿态、速度、位置
@@ -44,18 +45,25 @@ int main()
 		if (fgets(fin, 1000, fpin) <= 0){
 			break;
 		}
-		int flag = sscanf(fin, "%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf", &datain[0], &datain[1], &datain[2], &datain[3], &datain[4], &datain[5], &datain[6], &datain[7], &datain[8], &datain[9], &datain[10], &datain[11]);
+
+		int flag = sscanf(fin, "%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf", 
+			&imu.gyr.s[0], &imu.gyr.s[1], &imu.gyr.s[2],
+			&imu.acc.s[0], &imu.acc.s[1], &imu.acc.s[2],
+			&gnss.lat, &gnss.lon, &gnss.height, 
+			&gnss.ve, &gnss.vn, &gnss.vu);
 
 		if (!flag) {
 			continue;
 		}
-
-		InsStateUpdate(datain[0], datain[1], datain[2], datain[3], datain[4], datain[5]);//惯性导航
-		StatePredict();//状态更新
+		// 惯性状态更新
+		InsStateUpdate(imu.gyr.s[0], imu.gyr.s[1], imu.gyr.s[2], 
+					   imu.acc.s[0], imu.acc.s[1], imu.acc.s[2]);
+		// 状态更新
+		StatePredict();
 
 		if ((k % 20) == 0)//组合导航
 		{
-			StateCorrectUpdate(datain[6], datain[7], datain[8], datain[9], datain[10], datain[11]);
+			StateCorrectUpdate(gnss.lat, gnss.lon, gnss.height, gnss.ve, gnss.vn, gnss.vu);
 		}
 
 		//记录数据

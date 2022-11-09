@@ -23,7 +23,7 @@ public:
 	Mat(int setm,int setn,int kind);//kind=1单位阵，kind=0零矩阵,其它不初始化内容。
 	void Init(int setm,int setn,int kind);//kind=1单位阵，kind=0零矩阵,其它不初始化内容。
 
-
+	void Zero(void);
 	//这些关键数本应该作为private的。但是为了方便，我也做成了public
 	int m;//行数
 	int n;//列数

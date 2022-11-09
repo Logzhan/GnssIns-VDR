@@ -24,7 +24,7 @@ extern Mat tpos;
 extern Mat AccBias;
 extern Mat GyroBias;
 
-void KalmanParameter_Init();
+void Kalman_Init();
 
 
 Mat EulerDeg2Quat(double yawdeg, double pitchdeg, double rolldeg);

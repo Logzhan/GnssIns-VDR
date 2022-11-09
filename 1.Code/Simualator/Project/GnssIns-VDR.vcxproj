@@ -152,11 +152,11 @@
     <ClCompile Include="..\Src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Src\GnssInsDef.h" />
     <ClInclude Include="..\Src\Kalman.h" />
     <ClInclude Include="..\Src\Mat.h" />
     <ClInclude Include="..\Src\Location.h" />
     <ClInclude Include="..\Src\Utils.h" />
-    <ClInclude Include="..\Src\VDRBase.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

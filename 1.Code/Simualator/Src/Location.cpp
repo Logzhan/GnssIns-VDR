@@ -35,18 +35,21 @@ Mat Wien()
 	return wien;
 }
 
-Mat tWv()
+Mat Wenn()
 {
 	//北向速度会引起东向转动；东向速度会引起北向和天向转动
-	double lat=tpos.mat[0][0];
-	double H=tpos.mat[2][0];
-	double vE=tspeed.mat[0][0];
-	double vN=tspeed.mat[1][0];
+	double lat = tpos.mat[0][0];
+	double H   = tpos.mat[2][0];
+	double vE  = tspeed.mat[0][0];
+	double vN  = tspeed.mat[1][0];
 	
 	Mat wen(3,1,0);
-	wen.mat[0][0]=(-vN/(Rmeri+H));//东
-	wen.mat[1][0]=vE/(Rprim+H);//北
-	wen.mat[2][0]=wen.mat[1][0]*tan(lat);//天
+	// 东
+	wen.mat[0][0] = (-vN/(Rmeri + H));
+	// 北
+	wen.mat[1][0] = vE/(Rprim + H);
+	// 天
+	wen.mat[2][0] = wen.mat[1][0]*tan(lat);
 	
 	return wen;
 }
@@ -84,14 +87,8 @@ Mat dpos;
 
 void InsStateUpdate(double gx,double gy,double gz,double ax,double ay,double az)
 {
-	
 	Mat gyro(3,1,0);
 	Mat acc(3,1,0);
-
-	Mat cbn;
-	Mat an;
-
-	double H;
 
 	gyro.mat[0][0]=gx;
 	gyro.mat[1][0]=gy;
@@ -104,34 +101,35 @@ void InsStateUpdate(double gx,double gy,double gz,double ax,double ay,double az)
 	CalEarthModel();
 
 	//准备，补偿传感器误差。注意方向
-	acc1=acc+AccBias;
-	gyro1=gyro+GyroBias;
+	acc1  = acc + AccBias;
+	gyro1 = gyro + GyroBias;
 
-	
-	//一、计算姿态
-	wien=Wien();
-	wenn=tWv();
-	cbn=Quat2DCM(qa);
-	wnbb=gyro1-(~cbn)*(wien+wenn);//扣除地球自转、扣除速度引起的角速度之后，在b系的转动角速度。
-	qa=QuatAttUpdate(qa,wnbb*dTins);//更新姿态
+	// 计算姿态
+	wien = Wien();
+	wenn = Wenn();
+	Mat cbn = Quat2DCM(qa);
+	//扣除地球自转、扣除速度引起的角速度之后，在b系的转动角速度
+	wnbb = gyro1-(~cbn)*(wien+wenn);
+	qa = QuatAttUpdate(qa,wnbb*dTins);//更新姿态
 
 
-	//二、计算速度
-	AccN=cbn*acc1;//更新这个数，以便于卡尔曼滤波的部分使用
+	// 计算速度
+	AccN = cbn*acc1;//更新这个数，以便于卡尔曼滤波的部分使用
 	gn.Init(3,1,0);
 	gn.mat[2][0]=(-ge);
-	an=AccN-((wien+wien+wenn)^tspeed)+gn;
-	tspeed=tspeed+dTins*an;//更新速度
 
-	//三、计算位置
+	// 更新导航系速度的微分 
+	Mat DVn = AccN - ((wien + wien + wenn)^tspeed) + gn;
+	tspeed = tspeed + dTins * DVn;//更新速度
+
+	// 更新位置
 	dpos.Init(3,1,0);
-	H=tpos.mat[2][0];
-	dpos.mat[0][0]=tspeed.mat[1][0]/(Rmeri+H);//北向速度得到纬度
-	dpos.mat[1][0]=tspeed.mat[0][0]/((Rprim+H)*cos(tpos.mat[0][0]));//东向速度得到经度
-	dpos.mat[2][0]=tspeed.mat[2][0];
-	tpos=tpos+dTins*dpos;//更新位置
+	double H = tpos.mat[2][0];
+	dpos.mat[0][0] = tspeed.mat[1][0] / (Rmeri + H);//北向速度得到纬度
+	dpos.mat[1][0] = tspeed.mat[0][0] / ((Rprim + H)*cos(tpos.mat[0][0]));//东向速度得到经度
+	dpos.mat[2][0] = tspeed.mat[2][0];
+	tpos=tpos+dTins*dpos;
 }
-
 
 
 Mat Phi(15,15,1);
@@ -142,7 +140,7 @@ Mat Q0(15,15,0);
 Mat R(6,6,1);
 
 
-void KalmanParameter_Init()//调参数
+void Kalman_Init()//调参数
 {
 	dTins=0.005;
 
@@ -172,9 +170,9 @@ void KalmanParameter_Init()//调参数
 
 
 	qa=EulerDeg2Quat(0.5,-0.4,0.3);
-	tpos.mat[0][0]=40*deg2rad;
-	tpos.mat[1][0]=120*deg2rad;
-	tpos.mat[2][0]=500;
+	tpos.mat[0][0] = 40*deg2rad;
+	tpos.mat[1][0] = 120*deg2rad;
+	tpos.mat[2][0] = 500;
 }
 
 Mat StateUpdate(Mat Z,Mat H)
@@ -205,12 +203,21 @@ void StateCorrectUpdate(double lat,double lon,double height,double Ve,double Vn 
 
 	Mat H(6,15,1);
 
-	Mat X = StateUpdate(Z,H);
+	Mat Pkk = Phi * Pk * (~Phi) + Q;
+	Mat K = Pkk * (~H) / (H * Pkk * (~H) + R);
+	// 因为每次滤波之后补偿了误差，所以状态预测总是0
+	Mat X = K * Z;
+
+	// 更新协方差
+	Mat IKH = Eye - K * H;
+	Pk = IKH * Pkk * (~IKH) + K * R * (~K);
+
+	Phi.Init(15, 15, 1);
 	Q.Init(15,15,0);
 
-	tpos=tpos-X.SubMat(0,0,3,1);
-	tspeed=tspeed-X.SubMat(3,0,3,1);
-	qa=QuatAttUpdate(qa,(~Quat2DCM(qa))*X.SubMat(6,0,3,1));
+	tpos = tpos-X.SubMat(0,0,3,1);
+	tspeed = tspeed-X.SubMat(3,0,3,1);
+	qa = QuatAttUpdate(qa,(~Quat2DCM(qa))*X.SubMat(6,0,3,1));
 	//biasgyro=biasgyro-X.submat(9,0,3,1);
 	//biasacc=biasacc-X.submat(12,0,3,1);
 }
