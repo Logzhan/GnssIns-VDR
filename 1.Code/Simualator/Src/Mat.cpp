@@ -10,10 +10,9 @@
 
 double mind(double a,double b)
 {
-	double c=a;
-	if(b<c)
-	{
-		c=b;
+	double c = a;
+	if(b < c){
+		c = b;
 	}
 	return c;
 }

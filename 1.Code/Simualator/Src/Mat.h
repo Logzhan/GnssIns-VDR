@@ -38,7 +38,6 @@ public:
 	double Sqrt();//向量长度的平方
 	friend Mat operator ^(Mat a,Mat b);//叉乘
 
-
 	//运算
 	friend Mat operator *(double k,Mat a);
 	friend Mat operator *(Mat a,double k);

@@ -21,7 +21,7 @@ Mat Wien(double lat)
 	const double we = 7.2921158e-5;
 	Mat wien(3,1,0);
 	wien.mat[1][0] = cos(lat)*we;
-	wien.mat[2][0] = sin(lat)*we;//天
+	wien.mat[2][0] = sin(lat)*we; // 天
 	return wien;
 }
 
@@ -31,8 +31,8 @@ Mat Wenn(double lat, double H, double vE, double vN)
 	// 北向速度会引起东向转动；东向速度会引起北向和天向转动
 	Mat wenn(3,1,0);
 	// 东北天坐标系
-	wenn.mat[0][0] = (-vN/(EarthPara.Rm + H));
-	wenn.mat[1][0] = vE/(EarthPara.Rp + H);
+	wenn.mat[0][0] = (-vN / (EarthPara.Rm + H));
+	wenn.mat[1][0] =   vE / (EarthPara.Rp + H);
 	wenn.mat[2][0] = wenn.mat[1][0]*tan(lat);
 	
 	return wenn;
@@ -68,12 +68,12 @@ void InsStateUpdate(IMU_t& imu, GnssIns_t& gins)
 	gins.qbn = QuatAttUpdate(gins.qbn, wnbb * gins.dt);
 
 	// 计算速度
-	gins.AccN = cbn*acc1;//更新这个数，以便于卡尔曼滤波的部分使用
+	gins.fn = cbn*acc1;//更新这个数，以便于卡尔曼滤波的部分使用
 	gn.Init(3,1,0);
 	gn.mat[2][0] = -EarthPara.ge;
 
 	// 更新导航系速度的微分 
-	Mat DVn = gins.AccN - ((wien + wien + wenn)^ gins.vel) + gn;
+	Mat DVn = gins.fn - ((wien + wien + wenn)^ gins.vel) + gn;
 	gins.vel = gins.vel + gins.dt * DVn;//更新速度
 
 	// 更新位置

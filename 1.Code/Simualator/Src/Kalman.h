@@ -10,13 +10,18 @@
 *---------------------------------------------------------------------**/
 void Kalman_Init(GnssIns_t& gins);
 
-void StatePredict(GnssIns_t& gins);
+/**----------------------------------------------------------------------
+* Function    : EkfStatePredict
+* Description : ¿¨¶ûÂü×´Ì¬Ô¤²â
+* Date        : 2022/11/09 logzhan
+*---------------------------------------------------------------------**/
+void EkfStatePredict(GnssIns_t& gins);
 
 /**---------------------------------------------------------------------
-* Function    : StateCorrectUpdate
+* Function    : EkfStateUpdate
 * Description : ¿¨¶ûÂü×´Ì¬¸üÐÂÒÔ¼°×´Ì¬ÐÞÕý
 * Date        : 2022/11/18 logzhan
 *---------------------------------------------------------------------**/
-void StateUpdate(Gnss_t& gnss, GnssIns_t& gins);
+void EkfStateUpdate(Gnss_t& gnss, GnssIns_t& gins);
 
 #endif

@@ -56,11 +56,11 @@ void Kalman_Init(GnssIns_t& gins)
 }
 
 /**---------------------------------------------------------------------
-* Function    : StateUpdate
+* Function    : EkfStateUpdate
 * Description : 卡尔曼状态更新以及状态修正
 * Date        : 2022/11/18 logzhan
 *---------------------------------------------------------------------**/
-void StateUpdate(Gnss_t& gnss, GnssIns_t& gins)
+void EkfStateUpdate(Gnss_t& gnss, GnssIns_t& gins)
 {
 	Mat Z(6, 1, 0);
 	Z.mat[0][0] = gins.pos.mat[0][0] - gnss.lat;
@@ -93,7 +93,11 @@ void StateUpdate(Gnss_t& gnss, GnssIns_t& gins)
 	//biasgyro=biasgyro-X.submat(9,0,3,1);
 	//biasacc=biasacc-X.submat(12,0,3,1);
 }
-
+/**----------------------------------------------------------------------
+* Function    : GetF
+* Description : 获取F矩阵
+* Date        : 2022/11/09 logzhan
+*---------------------------------------------------------------------**/
 Mat GetF(GnssIns_t& gins)
 {
 	/*
@@ -135,7 +139,6 @@ Mat GetF(GnssIns_t& gins)
 	Fvp.mat[2][2] = 1;
 	F.FillSubMat(0, 3, Fvp);
 
-
 	// 位置对速度影响的子矩阵	
 	// 纬度对东向速度的影响
 	Fpv.mat[0][0] = 2 * we * cosphi * vN + 2 * we * sinphi * vU + vN * vE * RpH1 * secphi * secphi;
@@ -152,20 +155,20 @@ Mat GetF(GnssIns_t& gins)
 	F.FillSubMat(3, 0, Fpv);
 
 	// 速度对速度影响的子矩阵	
-	Fvv.mat[0][0] = (vN * tanphi - vU) * RpH1;//东向速度对东向速度的影响
-	Fvv.mat[0][1] = 2.0 * we * sinphi + vE * RpH1 * tanphi;//北向速度对东向速度的影响
-	Fvv.mat[0][2] = (-2.0) * we * cosphi - vE * RpH1;//天向速度对东向速度的影响
-	Fvv.mat[1][0] = (-2.0) * (we * sinphi + vE * RpH1 * tanphi);//东向速度对北向速度的影响
-	Fvv.mat[1][1] = (-RmH1) * vU;//北向速度对北向速度的影响
-	Fvv.mat[1][2] = (-RmH1) * vN;//天向速度对北向速度的影响
-	Fvv.mat[2][0] = 2.0 * (we * cosphi + vE * RpH1);//东向速度对天向速度的影响//有的书公式写错了
-	Fvv.mat[2][1] = 2 * vN * RmH1;//北向速度对天向速度的影响
+	Fvv.mat[0][0] = (vN * tanphi - vU) * RpH1;                   // 东向速度对东向速度的影响
+	Fvv.mat[0][1] = 2.0 * we * sinphi + vE * RpH1 * tanphi;      // 北向速度对东向速度的影响
+	Fvv.mat[0][2] = (-2.0) * we * cosphi - vE * RpH1;            // 天向速度对东向速度的影响
+	Fvv.mat[1][0] = (-2.0) * (we * sinphi + vE * RpH1 * tanphi); // 东向速度对北向速度的影响
+	Fvv.mat[1][1] = (-RmH1) * vU;                                // 北向速度对北向速度的影响
+	Fvv.mat[1][2] = (-RmH1) * vN;                                // 天向速度对北向速度的影响
+	Fvv.mat[2][0] = 2.0 * (we * cosphi + vE * RpH1);             // 东向速度对天向速度的影响, 有的书公式写错了
+	Fvv.mat[2][1] = 2 * vN * RmH1;                               // 北向速度对天向速度的影响
 	F.FillSubMat(3, 3, Fvv);
 
 	// 姿态对速度影响的子矩阵
-	double fE = gins.AccN.mat[0][0];
-	double fN = gins.AccN.mat[1][0];
-	double fU = gins.AccN.mat[2][0];
+	double fE = gins.fn.mat[0][0];
+	double fN = gins.fn.mat[1][0];
+	double fU = gins.fn.mat[2][0];
 
 	// 北向角度对东向速度的影响
 	Fav.mat[0][1] = (-fU);  
@@ -182,28 +185,33 @@ Mat GetF(GnssIns_t& gins)
 	F.FillSubMat(3, 6, Fav);
 
 
-	//位置对姿态影响的子矩阵	
-	Fpa.mat[0][2] = vN * RmH1 * RmH1;//高度对东向姿态的影响
-	Fpa.mat[1][0] = (-we) * sinphi;//纬度对北向姿态的影响
-	Fpa.mat[1][2] = (-vE) * RpH1 * RpH1;//高度对北向姿态的影响
-	Fpa.mat[2][0] = we * cosphi + vE * RpH1 * secphi * secphi;//纬度对天向姿态的影响
-	Fpa.mat[2][2] = (-vE) * tanphi * RpH1 * RpH1;//高度对天向姿态的影响
+	// 位置对姿态影响的子矩阵	
+	// 高度对东向姿态的影响
+	Fpa.mat[0][2] = vN * RmH1 * RmH1;
+	// 纬度对北向姿态的影响
+	Fpa.mat[1][0] = (-we) * sinphi;
+	// 高度对北向姿态的影响
+	Fpa.mat[1][2] = (-vE) * RpH1 * RpH1;
+	// 纬度对天向姿态的影响
+	Fpa.mat[2][0] = we * cosphi + vE * RpH1 * secphi * secphi;
+	// 高度对天向姿态的影响
+	Fpa.mat[2][2] = (-vE) * tanphi * RpH1 * RpH1;
 	F.FillSubMat(6, 0, Fpa);
 
 
 	// 速度对姿态影响的子矩阵	
-	Fva.mat[0][1] = (-RmH1);//北向速度对东向姿态的影响
-	Fva.mat[1][0] = RpH1;//东向速度对北向姿态的影响
-	Fva.mat[2][0] = RpH1 * tanphi;//东向速度对天向姿态的影响
+	Fva.mat[0][1] = (-RmH1);                          // 北向速度对东向姿态的影响
+	Fva.mat[1][0] = RpH1;                             // 东向速度对北向姿态的影响
+	Fva.mat[2][0] = RpH1 * tanphi;                    // 东向速度对天向姿态的影响
 	F.FillSubMat(6, 3, Fva);
 
 	// 姿态对姿态影响的子矩阵	
-	Faa.mat[0][1] = we * sinphi + vE * RpH1 * tanphi;// 北向姿态对东向姿态的影响
-	Faa.mat[2][0] = we * cosphi + vE * RpH1;// 东向姿态对天向姿态的影响
-	Faa.mat[2][1] = vN * RmH1;       // 北向姿态对天向姿态的影响
-	Faa.mat[0][2] = (-Faa.mat[2][0]);// 天向姿态对东向姿态的影响
-	Faa.mat[1][0] = (-Faa.mat[0][1]);// 东向姿态对北向姿态的影响
-	Faa.mat[1][2] = (-Faa.mat[2][1]);// 天向姿态对北向姿态的影响
+	Faa.mat[0][1] = we * sinphi + vE * RpH1 * tanphi; // 北向姿态对东向姿态的影响
+	Faa.mat[2][0] = we * cosphi + vE * RpH1;          // 东向姿态对天向姿态的影响
+	Faa.mat[2][1] = vN * RmH1;                        // 北向姿态对天向姿态的影响
+	Faa.mat[0][2] = (-Faa.mat[2][0]);                 // 天向姿态对东向姿态的影响
+	Faa.mat[1][0] = (-Faa.mat[0][1]);                 // 东向姿态对北向姿态的影响
+	Faa.mat[1][2] = (-Faa.mat[2][1]);                 // 天向姿态对北向姿态的影响
 	F.FillSubMat(6, 6, Faa);
 
 	Mat cbn = Quat2DCM(gins.qbn);
@@ -214,8 +222,12 @@ Mat GetF(GnssIns_t& gins)
 
 	return F;
 }
-
-void StatePredict(GnssIns_t& gins)
+/**----------------------------------------------------------------------
+* Function    : EkfStatePredict
+* Description : 卡尔曼状态预测
+* Date        : 2022/11/09 logzhan
+*---------------------------------------------------------------------**/
+void EkfStatePredict(GnssIns_t& gins)
 {
 	Phi = (Eye + GetF(gins) * gins.dt) * Phi;
 	Q = Q + Q0 * gins.dt;

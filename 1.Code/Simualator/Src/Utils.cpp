@@ -9,9 +9,9 @@
 #include "GnssInsDef.h"
 #include "Utils.h"
 
-extern const double deg2rad; //角度转换弧度的系数
-extern const double rad2deg; //弧度转换角度的系数
-extern const double we;      //地球自转角速率
+extern const double deg2rad; // 角度转换弧度的系数
+extern const double rad2deg; // 弧度转换角度的系数
+extern const double we;      // 地球自转角速率
 
 /**---------------------------------------------------------------------
 * Function    : Quat2DCM

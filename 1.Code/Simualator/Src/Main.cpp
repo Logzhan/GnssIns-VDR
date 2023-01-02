@@ -45,7 +45,7 @@ int main()
 
 	GnssIns_Init(gins);
 
-	//设置初值，姿态、速度、位置
+	// 设置初值，姿态、速度、位置
 	gins.qbn = EulerDeg2Quat(-143.26, 75.69, 12.2);
 
 	gins.vel.mat[0][0] = (-37.8472);
@@ -77,11 +77,11 @@ int main()
 		// 惯性状态更新
 		InsStateUpdate(imu, gins);
 		// 状态更新
-		StatePredict(gins);
+		EkfStatePredict(gins);
 		// 组合导航位置优化
 		if ((k % 20) == 0){
 			// gnss参考信息融合
-			StateUpdate(gnss, gins);
+			EkfStateUpdate(gnss, gins);
 			// 结果保存
 			//KmlTracks_t points;
 			//memset(&points, 0, sizeof(points));

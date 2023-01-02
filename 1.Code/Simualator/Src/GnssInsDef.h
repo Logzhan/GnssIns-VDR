@@ -107,7 +107,7 @@ typedef struct {
 	Mat    qbn;
 	Mat    vel;
 	Mat    pos;
-	Mat    AccN;
+	Mat    fn;
 }GnssIns_t;
 
 
