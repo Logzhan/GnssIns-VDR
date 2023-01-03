@@ -79,7 +79,7 @@ Faa=[0,                             we*sinphi+vE*RpH1*tanphi,   -(we*cosphi+vE*R
 F(7:9,7:9)=Faa;
 
 
-cbnm=cbn(atti);
+cbnm=Quat2DCM(atti);
 F(7:9,10:12)=(-cbnm);%陀螺仪零偏对姿态的影响。
 F(4:6,13:15)=cbnm;%加速度计零偏对速度的影响。
 

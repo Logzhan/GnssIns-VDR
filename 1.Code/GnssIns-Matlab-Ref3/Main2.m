@@ -25,10 +25,10 @@ dTins=0.01;
 
 %% 卡尔曼滤波参数
 Pk1=diag([1e-12,1e-12,9,0.1,0.1,0.1,3e-4,3e-4,3e-4,0,0,0,0,0,0]');
-Q0=diag([0,0,0,1e-4,1e-4,1e-4,1e-10,1e-10,1e-10,0,0,0,0,0,0]');
+Q0=diag([0,0,0,1e-2,1e-2,1e-2,1e-5,1e-5,1e-5,0,0,0,0,0,0]');
 Phi=eye(15);
 
-R=diag([1e-13,1e-13,9,1e-12,1e-12,0.1]');
+R=diag([1e-14,1e-14,1e-12,1e-12,1e-12,1e-2]');
 % 生成6*15的H矩阵单阵
 H=eye(15,15);
 H=H(1:6,:);
@@ -50,22 +50,18 @@ Result=zeros(L,30);
 GyroBias=zeros(3,1);
 AccBias=zeros(3,1);
 
-ahrs = MahonyAHRS('SamplePeriod',dTins, 'Kp', 1);
-ahrs.Quaternion = Qnb';
-
 gnss_idx = 1;
 InsInitAlign = false;
+LastEnuHeading = 1000;
 %% 导航
 for k=1:1:L
+    %Q=zeros(15);
     gyro = IMUData(k,2:4);
     acc  = IMUData(k,5:7);
-    % ARHS姿态更新
-    ahrs.UpdateIMU(gyro, acc);
-    % 如果完成初始对准
+    
+    [Qnb,Vel,Pos,AccN] = InsUpdate(gyro',acc',Qnb,Vel,Pos,dTins,AccBias,GyroBias,InsInitAlign); 
+    
     if(InsInitAlign == true)
-        Qnb = ahrs.Quaternion';
-        % 惯性传感器更新
-        [Qnb,Vel,Pos,AccN] = InsUpdate(gyro',acc',Qnb,Vel,Pos,dTins,AccBias,GyroBias); 
         % EKF状态更新
         Phi = EkfStateUpdate(dTins,Qnb,Vel,Pos,AccN,Phi);
         % 更新Q矩阵
@@ -79,7 +75,7 @@ for k=1:1:L
         % 数据索引更新
         gnss_idx = gnss_idx + 1;
         
-        if(GnssHeading ~= 1000 && GnssVelMod > 3 && InsInitAlign == false)
+        if(GnssHeading ~= 1000 && GnssVelMod > 5 && InsInitAlign == false && gnss_idx > 55)
             InsInitAlign = true;
             % GPS航向角转换到ENU航向角
             EnuHeading = -GnssHeading + pi / 2;
@@ -87,10 +83,9 @@ for k=1:1:L
                 EnuHeading = EnuHeading + 2 * pi;
             end
             % 用GPS的航向角替换IMU的航向角
-            Euler = Quat2EulerDeg(ahrs.Quaternion');
+            Euler = Quat2EulerDeg(Qnb);
             Euler(1) = EnuHeading * (180 / pi);
-            ahrs.Quaternion = EulerDeg2Quat(Euler(1),Euler(2),Euler(3))';
-            Qnb = ahrs.Quaternion';
+            Qnb = EulerDeg2Quat(Euler(1),Euler(2),Euler(3));
             
             ve = GnssVelMod * cos(EnuHeading);
             vn = GnssVelMod * sin(EnuHeading);
@@ -98,13 +93,16 @@ for k=1:1:L
             GnssVel = [ve, vn, vu]';
             Vel = GnssVel;
             Pos = GnssPos;
+            LastEnuHeading = EnuHeading;
         elseif(InsInitAlign == true)
             % 从Qnb获取IMU的航向
             Euler = Quat2EulerDeg(Qnb) / (180 / pi);
-            EnuHeading = Euler(1);
+            %EnuHeading = Euler(1);
+            EnuHeading = LastEnuHeading;
             % 如果GPS航向角有效
             if(GnssHeading ~= 1000 && GnssVelMod > 2)
                 EnuHeading = -GnssHeading + pi / 2;
+                LastEnuHeading = EnuHeading;
             end
             
             if(EnuHeading < 0)
@@ -122,17 +120,18 @@ for k=1:1:L
             Q=zeros(15);
             % 位置更新
             Pos = Pos-X(1:3,1);
-            % 速度更新
+%             % 速度更新
             Vel = Vel-X(4:6,1);
             % 姿态更新
-            Qnb = QuatUpdate(Qnb,(cbn(Qnb))'*X(7:9,1));
+            Qnb = QuatUpdate(Qnb,(Quat2DCM(Qnb))'*X(7:9,1));
             % 更新陀螺仪零偏
-            GyroBias = GyroBias - X(10:12,1);
-            % 更新加速度计零偏
-            AccBias = AccBias - X(13:15,1);
-            
-            ahrs.Quaternion = Qnb';
-
+%             GyroBias = GyroBias - X(10:12,1);
+%             % 更新加速度计零偏
+%             AccBias = AccBias - X(13:15,1);
+%             Vel = GnssVel;
+%             Pos = GnssPos;
+        else
+            Pos = GnssPos;
         end
     end
     %数据保存 
@@ -147,7 +146,7 @@ figure;
 plot(NmeaData(:,3)*(180/pi), NmeaData(:,2)*(180/pi),'r');
 hold on;
 plot(Result(:,8)*(180/pi),Result(:,7)*(180/pi),'b.');
-
+title('GNSS轨迹对比GPS轨迹');
 
 figure;
 subplot(3,1,1)
@@ -161,6 +160,14 @@ plot(t,Result(:,9),t,Result(:,9));
 ylabel('高度');
 legend('组合导航','卫星');
 xlabel('时间（s）');
+
+figure;
+plot(t,Result(:,1:3));
+legend('Yaw','Pitch','Roll');
+
+figure;
+plot(t,Result(:,22:24).*(180/pi));
+legend('东向姿态误差','东北姿态误差','天向姿态误差');
 
 
 % 保存仿真结果到csv中

@@ -13,12 +13,12 @@ load Reference_Data.mat    % GPS测量数据
 
 disp('Step2:初始化参数;');
 %% 一些导航参数常数项
-WIE   =  7.292115e-5;           % 地球自转角速度
-r0    =  6378137.0;             % 地球半径
+WIE   =  7.292115e-5;          % 地球自转角速度
+r0    =  6378137.0;            % 地球半径
 EE    =  0.0818191908426;      % 偏心率
-d2r   =  pi/180;             % degree to radian
-r2d   =  180/pi;             % radian to degree
-dh2rs =  d2r/3600;           % deg/h to rad/s
+d2r   =  pi/180;               % degree to radian
+r2d   =  180/pi;               % radian to degree
+dh2rs =  d2r/3600;             % deg/h to rad/s
 %% 导航坐标系下初始化姿态，速度，位置
 yaw   =  0*pi/180; % 航向角
 pitch =  0*pi/180; % 俯仰角
@@ -109,11 +109,13 @@ for i=1:data_length * 200 / 2
     % 根据维度计算重力加速度
     g_u = -9.7803267711905*(1+0.00193185138639*sin(Lati)^2)...
         /((1-0.00669437999013*sin(Lati)^2)^0.5 *(1.0 + Alti/r0)^2);
+    % 这里的g是按照北东地
     g = [0 0 -g_u]';
     
     %计算等效旋转矢量
     TV = angle + (2.0/3.0)*cross(ang_1,ang_2);
-    %计算四元数
+    
+    %更新四元数
     NS = TV' * TV ;
     if   NS < 1.0e-8
         dM = [0 -TV(1) -TV(2) -TV(3)
