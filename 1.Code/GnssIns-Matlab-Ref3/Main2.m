@@ -1,8 +1,8 @@
-%%------------------------------------------------------------------------- 
+%% ------------------------------------------------------------------------- 
 % Desprition : 组合导航算法
-% Date       : 2022-12-31
+% Date       : 2022-01-05
 % Author     : logzhan
-%%-------------------------------------------------------------------------
+%% -------------------------------------------------------------------------
 clc;
 clear;
 close all;
@@ -15,18 +15,21 @@ addpath(genpath('./Geo'));
 addpath(genpath('./quaternion_library'));
 %% 数据集加载
 
-
 load NmeaData.txt
 load IMUData.txt
 L = length(IMUData);
 
 %% 组合导航核心参数配置
-dTins=0.01;
+% IMU的采样频率为100Hz
+Fs    = 100;        
+InsDt = 1/Fs;
+% 是否保存Csv
+SaveDataCsv = false;
 
 %% 卡尔曼滤波参数
-Pk1=diag([1e-12,1e-12,9,0.1,0.1,0.1,3e-4,3e-4,3e-4,0,0,0,0,0,0]');
-Q0=diag([0,0,0,1e-2,1e-2,1e-2,1e-5,1e-5,1e-5,0,0,0,0,0,0]');
-Phi=eye(15);
+P0 = diag([1e-12,1e-12,9,0.1,0.1,0.1,3e-4,3e-4,3e-4,0,0,0,0,0,0]');
+Q0 = diag([0,0,0,1e-2,1e-2,1e-2,1e-5,1e-5,1e-5,0,0,0,0,0,0]');
+Phi= eye(15);
 
 R=diag([1e-14,1e-14,1e-12,1e-12,1e-12,1e-2]');
 % 生成6*15的H矩阵单阵
@@ -36,7 +39,7 @@ H=H(1:6,:);
 Q=zeros(15);
 Z=zeros(6,1);
 X=zeros(15,1);
-
+P=P0;
 %% 初始值
 % 顺序为航向、俯仰、横滚   
 Qnb = EulerDeg2Quat(0,0,0);
@@ -55,17 +58,17 @@ InsInitAlign = false;
 LastEnuHeading = 1000;
 %% 导航
 for k=1:1:L
-    %Q=zeros(15);
-    gyro = IMUData(k,2:4);
-    acc  = IMUData(k,5:7);
+    Gyro = IMUData(k,2:4);
+    Acc  = IMUData(k,5:7);
     
-    [Qnb,Vel,Pos,AccN] = InsUpdate(gyro',acc',Qnb,Vel,Pos,dTins,AccBias,GyroBias,InsInitAlign); 
-    
+    [Qnb,Vel,Pos,AccN] = InsUpdate(Gyro',Acc',Qnb,Vel,Pos,InsDt,AccBias,GyroBias,InsInitAlign); 
+    % 必须在完成初始对准后再运行EkfStateUpdate,长时间没有GPS约束，惯性推算位置
+    % 会漂移很远
     if(InsInitAlign == true)
         % EKF状态更新
-        Phi = EkfStateUpdate(dTins,Qnb,Vel,Pos,AccN,Phi);
+        Phi = EkfStateUpdate(InsDt,Qnb,Vel,Pos,AccN,Phi);
         % 更新Q矩阵
-        Q = Q + Q0*dTins;
+        Q = Q + Q0*InsDt;
     end
     if(mod(k,100)==0 && gnss_idx < length(NmeaData))
         % 获取Gnss的位置、速度、航向信息
@@ -116,11 +119,12 @@ for k=1:1:L
             % 更新位置误差、速度误差
             Z = [Pos-GnssPos;Vel-GnssVel]; 
             % EKF状态修正
-            [X,Pk1,Phi] = Kalman(Z,H,Pk1,Q,R,Phi);
+            [X,P,Phi] = Kalman(Z,H,P,Q,R,Phi);
+            % 清空Q矩阵
             Q=zeros(15);
             % 位置更新
             Pos = Pos-X(1:3,1);
-%             % 速度更新
+            % 速度更新
             Vel = Vel-X(4:6,1);
             % 姿态更新
             Qnb = QuatUpdate(Qnb,(Quat2DCM(Qnb))'*X(7:9,1));
@@ -128,8 +132,6 @@ for k=1:1:L
 %             GyroBias = GyroBias - X(10:12,1);
 %             % 更新加速度计零偏
 %             AccBias = AccBias - X(13:15,1);
-%             Vel = GnssVel;
-%             Pos = GnssPos;
         else
             Pos = GnssPos;
         end
@@ -140,7 +142,7 @@ for k=1:1:L
     Result(k,16:30)=X';
 end
 
-t=dTins*((1:L)'-1);
+t=InsDt*((1:L)'-1);
 
 figure;
 plot(NmeaData(:,3)*(180/pi), NmeaData(:,2)*(180/pi),'r');
@@ -160,19 +162,22 @@ plot(t,Result(:,9),t,Result(:,9));
 ylabel('高度');
 legend('组合导航','卫星');
 xlabel('时间（s）');
+title('纬经高');
 
 figure;
 plot(t,Result(:,1:3));
 legend('Yaw','Pitch','Roll');
+title('融合姿态');
 
 figure;
 plot(t,Result(:,22:24).*(180/pi));
 legend('东向姿态误差','东北姿态误差','天向姿态误差');
 
-
-% 保存仿真结果到csv中
-result_table = table(Result);
-writetable(result_table,'GnssInsResult.csv');
+if(SaveDataCsv == true)
+    % 保存仿真结果到csv中
+    result_table = table(Result);
+    writetable(result_table,'GnssInsResult.csv');
+end
 
 
 

@@ -1,6 +1,6 @@
-function Phi = EkfStateUpdate(dTins,atti,speed,pos,accn,Phi)
+function Phi = EkfStateUpdate(InsDt,Qnb,Vel,Pos,Accn,Phi)
 %¸üÐÂ×´Ì¬¾ØÕó
-Fk  = GetFk(atti,speed,pos,accn);
-IFk = eye(15)+Fk*dTins;
+Fk  = GetFk(Qnb,Vel,Pos,Accn);
+IFk = eye(15) + Fk*InsDt;
 Phi = IFk*Phi;
 
