@@ -259,6 +259,11 @@ for i=1:data_length * 200 / 2
         
     end
 end
+
+% 保存仿真结果到csv中
+result_table = table(Navi_result);
+writetable(result_table,'GnssInsResult.csv');
+    
 figure(1);
 set(gcf,'unit','centimeters','position',[1 1 12.9 9]);
 subplot(3,1,1)
