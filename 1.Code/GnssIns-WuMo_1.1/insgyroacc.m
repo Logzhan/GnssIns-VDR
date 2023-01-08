@@ -23,7 +23,7 @@ wien=twe(pos);
 wenn=twv(pos,speed,Rmeri,Rprim);
 Cbn=Qnb2Cbn(atti);
 wnbb=gyro1-Cbn'*(wien+wenn);%扣除地球自转、扣除速度引起的角速度之后，在b系的转动角速度。
-atti=qupdate(atti,wnbb*dTins);%更新姿态
+atti=QuatUpdate(atti,wnbb*dTins);%更新姿态
 
 
 %二、计算速度

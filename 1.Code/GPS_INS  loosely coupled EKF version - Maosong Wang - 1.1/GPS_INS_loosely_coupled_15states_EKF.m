@@ -11,6 +11,7 @@ disp('***** 基于EKF的位置速度观测组合导航程序 *****');
 disp('Step1:加载数据;');
 
 addpath(genpath('./GeekMathLib'));
+addpath(genpath('./GnssIns'));
 
 load IMU_data200.mat       %惯导原始数据
 load Reference_data.mat    %GPS测量数据
@@ -60,7 +61,7 @@ std_pos     =   5;
 std_gyro    =   3*0.5*dh2rs;             % 陀螺随机漂移0.5度/小时
 std_acc     =   3*0.15e-3*g0;            % 加表零偏0.15mg
 
-Pfilter     =   diag([std_roll^2 std_pitch^2 std_yaw^2 std_vel^2 std_vel^2 std_vel^2 (std_pos/3600/30/57.3)^2 (std_pos/3600/30/57.3)^2 std_pos^2  std_gyro^2 std_gyro^2 std_gyro^2 std_acc^2 std_acc^2 std_acc^2]);
+P =  diag([std_roll^2 std_pitch^2 std_yaw^2 std_vel^2 std_vel^2 std_vel^2 (std_pos/3600/30/57.3)^2 (std_pos/3600/30/57.3)^2 std_pos^2  std_gyro^2 std_gyro^2 std_gyro^2 std_acc^2 std_acc^2 std_acc^2]);
 
 % Q的设置
 std_Wg      =   0.15*(2.909*1e-4);       % 陀螺漂移噪声,度/根号小时转化成rad/根号秒
@@ -77,7 +78,7 @@ H(4:6,7:9)  =   eye(3);
 % R的设置
 R           =   diag([std_vel^2 std_vel^2 std_vel^2 (std_pos/3600/30/57.3)^2 (std_pos/3600/30/57.3)^2 (std_pos)^2]);
 %% 误差状态初始置零
-Xfilter = zeros(15, 1);
+X = zeros(15, 1);
 data_length=1750;
 Navi_result=zeros(data_length,19);
 gps_count =1;
@@ -203,8 +204,8 @@ for i=1:data_length*200/2
         M1  = G * Qkf * G'*Discret_T;
         discreteQ=M1;
         
-        Pfilter = discreteF * Pfilter * discreteF' + discreteQ;
-        Xfilter = discreteF * Xfilter;
+        P = discreteF * P * discreteF' + discreteQ;
+        X = discreteF * X;
     end
     
     if (mod(i,100)==0)
@@ -216,24 +217,23 @@ for i=1:data_length*200/2
         Z(5,1) = Longi- Reference_data(gps_count+1,3)*pi/180;
         Z(6,1) = Alti - Reference_data(gps_count+1,4);
                 
-        K       = Pfilter * H'/(H * Pfilter * H' + R);
-        Xfilter = Xfilter + K * (Z - H * Xfilter);
-        Pfilter = (eye(15, 15) - K * H) * Pfilter * (eye(15, 15) - K * H)' + K * R * K';
-        
-        Vn = Vn - Xfilter(4);
-        Ve = Ve - Xfilter(5);
-        Vd = Vd - Xfilter(6);
+        % 扩展卡尔曼状态更新
+        [X,P] = EkfStateUpdate(Z,H,P,R,X);
+                
+        Vn = Vn - X(4);
+        Ve = Ve - X(5);
+        Vd = Vd - X(6);
         V_last=[Vn Ve Vd]';
-        Lati = Lati - Xfilter(7);
-        Longi=Longi -Xfilter(8);
-        Alti = Alti - Xfilter(9);
+        Lati = Lati  - X(7);
+        Longi= Longi - X(8);
+        Alti = Alti  - X(9);
         %% 四元数校正
-        deta_q=[cos(norm(Xfilter(1:3))/2) (sin(norm(Xfilter(1:3))/2)/norm(Xfilter(1:3)) * Xfilter(1:3))']';
+        deta_q=[cos(norm(X(1:3))/2) (sin(norm(X(1:3))/2)/norm(X(1:3)) * X(1:3))']';
         q=f_quat_muti(deta_q,q);
         cbn=Qnb2Cbn(q);
         cnb = cbn';
         %%  把除了常值漂移之外的误差归零
-        Xfilter(1:9,1)=zeros(9,1);
+        X(1:9,1)=zeros(9,1);
         %%  保存结果
         Navi_result(gps_count,1) = gps_count;
         Navi_result(gps_count,2)=Vn- Reference_data(gps_count+1,5) ;
@@ -245,8 +245,8 @@ for i=1:data_length*200/2
         Navi_result(gps_count,8) =atan2(cbn(3,2), cbn(3,3))*180/pi; % Roll
         Navi_result(gps_count,9) =asin(-cbn(3,1))*180/pi;           % Pitch
         Navi_result(gps_count,10)=atan2(cbn(2,1),cbn(1,1))*180/pi;  % Yaw
-        Navi_result(gps_count,11:13)  =   Xfilter(10:12)'*180/pi;
-        Navi_result(gps_count,14:16)  =   Xfilter(13:15)';
+        Navi_result(gps_count,11:13)  =   X(10:12)'*180/pi;
+        Navi_result(gps_count,14:16)  =   X(13:15)';
         gps_count = gps_count + 1;
         
     end

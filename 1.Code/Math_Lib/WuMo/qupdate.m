@@ -1,4 +1,4 @@
-function qb=qupdate(qa,th)
+function qb = qupdate(qa,th)
 
 thabs=sqrt(th(1)*th(1)+th(2)*th(2)+th(3)*th(3));
 
