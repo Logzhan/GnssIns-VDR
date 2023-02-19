@@ -7,9 +7,9 @@
 % -----------------------------------------------------------------------------
 function q = Euler2Quat2(phi, theta, psi, coor)
 q = [1,0,0,0];
-qx = RotVecQuat([1,0,0],phi);
-qy = RotVecQuat([0,1,0],theta);
-qz = RotVecQuat([0,0,1],psi);
+qx = VecAngle2Quat([1,0,0],phi);
+qy = VecAngle2Quat([0,1,0],theta);
+qz = VecAngle2Quat([0,0,1],psi);
 
 if(strcmp(coor,'ZYX'))
     q = QuatMult(QuatMult(qz,qy),qx);

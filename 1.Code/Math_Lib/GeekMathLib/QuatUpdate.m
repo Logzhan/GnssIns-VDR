@@ -1,51 +1,23 @@
-function qb = QuatUpdate(qa,th)
+function [q] = QuatUpdate(q,TV)
 
-thabs=sqrt(th(1)*th(1)+th(2)*th(2)+th(3)*th(3));
+THM = [0,    -TV(1), -TV(2), -TV(3);
+       TV(1), 0,      TV(3), -TV(2);
+       TV(2),-TV(3),  0,      TV(1);
+       TV(3), TV(2), -TV(1),  0    ];
+   
+A = eye(4)*cos(norm(TV)/2);
 
-THM=zeros(4);
-THM(1,2)=(-th(1));
-THM(1,3)=(-th(2));
-THM(1,4)=(-th(3));
-THM(2,3)=(th(3));
-THM(2,4)=(-th(2));
-THM(3,4)=(th(1));
-THM(2,1)=(th(1));
-THM(3,1)=(th(2));
-THM(4,1)=(th(3));
-THM(3,2)=(-th(3));
-THM(4,2)=(th(2));
-THM(4,3)=(-th(1));
-
-A=eye(4)*cos(thabs*0.5);
-
-if(thabs<(1e-6))
-    A=A+THM*0.5;
+if(norm(TV) < (1e-6))
+    A = A + 0.5 * THM;
 else
-    A=A+THM*(sin(thabs*0.5)/thabs);
+    A=A+THM*(sin(norm(TV)/2)/norm(TV));
 end
-qb=A*qa;
+q = A*q;
 
-
-
-
-
-%下面是本来的代码。为了加速，改成了上面的代码
-% thabs=sqrt(th'*th);	
-% THM=zeros(4,4);
-% THM(1,2)=(-th(1));
-% THM(1,3)=(-th(2));
-% THM(1,4)=(-th(3));
-% THM(2,3)=(th(3));
-% THM(2,4)=(-th(2));
-% THM(3,4)=(th(1));
-% THM=THM-THM';
-% A=eye(4)*cos(thabs*0.5);
-% 
-% if(thabs<(1e-6))
-%     A=A+THM*0.5;
-% else
-%     A=A+THM*(sin(thabs*0.5)/thabs);
-% end
-% qb=A*qa;
-
-
+%     % 旋转矢量构建四元数
+%     Delta_Re = cos(norm(TV)/2);
+%     Delta_Im = sin(norm(TV)/2)/norm(TV) * TV;
+%     % 旋转矢量转换为四元数
+%     q_new= [Delta_Re Delta_Im']';
+%     % 四元数相乘
+%     q = QuatMult(q,q_new');
